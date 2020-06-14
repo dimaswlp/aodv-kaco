@@ -1,0 +1,42 @@
+void KMeans::run()
+{
+	bool change = true;
+	while(change)
+{
+	change = false;
+	//check every member in cluster to each centroid of clusters
+	for(int i=0;i<this->clusters.size();i++)
+	{
+		for(int j=0;j<this->clusters[i].members.size();j++)
+		{
+			int currentClusterIndex=i;
+			int nextClusterIndex=i;
+			int nodeIndex = clusters[i].members[j].getMemberIndex();
+			for(int k=0;k<this->clusters.size();k++)
+			{
+				double temp = distanceMemberToCentroid(clusters[i].members[j],clusters[k].getCentroid());
+				//shorter distance is found
+				if(temp<clusters[i].members[j].getNearestDistance())
+				{
+				clusters[i].members[j].setNearestDistance(temp);
+				nextClusterIndex = k;
+				}
+			}
+
+		//changing of member cluster
+		if(currentClusterIndex != nextClusterIndex)
+			{
+			Member member = clusters[currentClusterIndex].getMember(nodeIndex);
+			clusters[currentClusterIndex].unassignMember(nodeIndex);
+			clusters[nextClusterIndex].assignMember(member);
+			change = true;
+			}
+		}
+	}	
+	//update centroid
+	for(int i=0;i<this->clusters.size();i++)
+	{
+		this->clusters[i].updateCentroid();
+	}
+}
+}

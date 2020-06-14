@@ -1,0 +1,37 @@
+void
+AODV::sendHello() {
+Packet *p = Packet::alloc();
+struct hdr_cmn *ch = HDR_CMN(p);
+struct hdr_ip *ih = HDR_IP(p);
+struct hdr_aodv_reply *rh = HDR_AODV_REPLY(p);
+// MODIFIED //
+((MobileNode*) mNode)->getLoc(&posX,&posY);
+this->pt.nodes_position_x[index] = posX;
+this->pt.nodes_position_y[index] = posY;
+this->pt.nodes_timestamp[index] = CURRENT_TIME;
+rh->pt = this->pt;
+rh->ct = this->ct;
+// MODIFIED //
+#ifdef DEBUG
+fprintf(stderr, "Sending Hello from %d at %.2f\n", index, Scheduler::instance().clock());
+#endif // DEBUG
+rh->rp_type = AODVTYPE_HELLO;
+//rh->rp_flags = 0x00;
+rh->rp_hop_count = 1;
+rh->rp_dst = index;
+rh->rp_dst_seqno = seqno;
+rh->rp_lifetime = (1 + ALLOWED_HELLO_LOSS) * HELLO_INTERVAL;
+// ch->uid() = 0;
+ch->ptype() = PT_AODV;
+ch->size() = IP_HDR_LEN + rh->size();
+ch->iface() = -2;
+ch->error() = 0;
+ch->addr_type() = NS_AF_NONE;
+ch->prev_hop_ = index; // AODV hack
+ih->saddr() = index;
+ih->daddr() = IP_BROADCAST;
+ih->sport() = RT_PORT;
+ih->dport() = RT_PORT;
+ih->ttl_ = 1;
+Scheduler::instance().schedule(target_, p, 0.0);
+}

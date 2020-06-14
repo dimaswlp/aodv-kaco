@@ -1,0 +1,44 @@
+void
+AODV::sendReply(nsaddr_t ipdst, u_int32_t hop_count, nsaddr_t rpdst,
+u_int32_t rpseq, u_int32_t lifetime, double timestamp) {
+Packet *p = Packet::alloc();
+struct hdr_cmn *ch = HDR_CMN(p);
+struct hdr_ip *ih = HDR_IP(p);
+struct hdr_aodv_reply *rp = HDR_AODV_REPLY(p);
+aodv_rt_entry *rt = rtable.rt_lookup(ipdst);
+printf("\n SEND REPLY BY %d to %d at %f",rpdst,ipdst,CURRENT_TIME);
+#ifdef DEBUG
+fprintf(stderr, "sending Reply from %d at %.2f\n", index, Scheduler::instance().clock());
+#endif // DEBUG
+assert(rt);
+rp->rp_type = AODVTYPE_RREP;
+//rp->rp_flags = 0x00;
+rp->rp_hop_count = hop_count;
+rp->rp_dst = rpdst;
+rp->rp_dst_seqno = rpseq;
+rp->rp_src = index;
+rp->rp_lifetime = lifetime;
+rp->rp_timestamp = timestamp;
+// MODIFIED //
+rp->ct = this->ct;
+if(rp->rp_dst == index)
+{
+rp->pheromoneCount = max(lastPheromoneCount,rt->pheromoneCount);
+}
+// MODIFIED //
+// ch->uid() = 0;
+ch->ptype() = PT_AODV;
+ch->size() = IP_HDR_LEN + rp->size();
+ch->iface() = -2;
+ch->error() = 0;
+ch->addr_type() = NS_AF_INET;
+ch->next_hop_ = rt->rt_nexthop;
+ch->prev_hop_ = index; // AODV hack
+ch->direction() = hdr_cmn::DOWN;
+ih->saddr() = index;
+ih->daddr() = ipdst;
+ih->sport() = RT_PORT;
+ih->dport() = RT_PORT;
+ih->ttl_ = NETWORK_DIAMETER;
+Scheduler::instance().schedule(target_, p, 0.);
+}

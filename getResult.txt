@@ -1,0 +1,28 @@
+struct nodes_clusters_table KMeans::getResult()
+{
+struct nodes_clusters_table ct;
+memset(ct.nodes_cluster_head,-1,sizeof(ct.nodes_cluster_head));
+memset(ct.nodes_cluster_gateway,-1,sizeof(ct.nodes_cluster_gateway));
+for(int i=0;i<this->clusters.size();i++)
+{
+if(clusters[i].getSize() != 0)ct.nodes_cluster_head[i] = clusters[i].getClusterHead().getMemberIndex();
+}
+struct point center;
+double cX,cY;
+for(int i=0;i<this->clusters.size();i++)
+{
+for(int j=0;j<this->clusters[i].getSize();j++)
+{
+cX+=clusters[i].members[j].getMemberPointX();
+cY+=clusters[i].members[j].getMemberPointY();
+}
+}
+center.x = cX/NUMBER_OF_NODE;
+center.y = cY/NUMBER_OF_NODE;
+for(int i=0;i<this->clusters.size();i++)
+{
+if(clusters[i].getSize() != 0)ct.nodes_cluster_gateway[i] = clusters[i].getClusterGateway(center).getMemberIndex();
+}
+ct.nodes_cluster_timestamp = CURRENT_TIME;
+return ct;
+}

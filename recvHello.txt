@@ -1,0 +1,49 @@
+void
+AODV::recvHello(Packet *p) {
+//struct hdr_ip *ih = HDR_IP(p);
+struct hdr_aodv_reply *rp = HDR_AODV_REPLY(p);
+AODV_Neighbor *nb;
+// MODIFIED //
+((MobileNode*) mNode)->getLoc(&posX,&posY);
+rp->pt.nodes_position_x[index] = posX;
+rp->pt.nodes_position_y[index] = posY;
+rp->pt.nodes_timestamp[index] = CURRENT_TIME;
+for(int i=0;i<NUMBER_OF_NODE;i++)
+{
+if(pt.nodes_timestamp[i] < rp->pt.nodes_timestamp[i])
+{
+this->pt.nodes_position_x[i] = rp->pt.nodes_position_x[i];
+this->pt.nodes_position_y[i] = rp->pt.nodes_position_y[i];
+this->pt.nodes_timestamp[i] = rp->pt.nodes_timestamp[i];
+}
+}
+// MODIFIED //
+// MODIFIED //
+if(this->ct.nodes_cluster_timestamp < rp->ct.nodes_cluster_timestamp)
+{
+this->ct = rp->ct;
+for(int i=0;i<NUMBER_OF_CLUSTER;i++)
+{
+if(this->ct.nodes_cluster_head[i] == this->index || this->ct.nodes_cluster_gateway[i] == this->index)
+{
+this->isClusterHead = true;
+break;
+}
+else
+
+{
+this->isClusterHead = false;
+}
+}
+}
+// MODIFIED //
+nb = nb_lookup(rp->rp_dst);
+if(nb == 0) {
+nb_insert(rp->rp_dst);
+}
+else {
+nb->nb_expire = CURRENT_TIME +
+(1.5 * ALLOWED_HELLO_LOSS * HELLO_INTERVAL);
+}
+Packet::free(p);
+}

@@ -1,0 +1,72 @@
+set val(chan) Channel/WirelessChannel ;
+set val(prop) Propagation/TwoRayGround ;
+set val(netif) Phy/WirelessPhy ;
+set val(mac) Mac/802_11 ;
+set val(ifq) Queue/DropTail/PriQueue ;
+set val(ll) LL ;
+set val(ant) Antenna/OmniAntenna ;
+set opt(x) 905 ;
+set opt(y) 905 ;
+set val(ifqlen) 1000 ;
+set val(nn) 200 ;
+set val(seed) 1.0 ;
+set val(adhocRouting) AODV ;
+set val(stop) 200 ;
+set val(cp) "cbr.txt" ;
+set val(sc) "scenario.txt" ;
+set val(energy_mod) EnergyModel
+set val(energy_init) 150
+set val(tx_power) 8.0
+set val(rx_power) 6.0
+set val(idle_power) 0.0
+set val(sleep_power) 0.0
+set ns_ [new Simulator]
+set topo [new Topography]
+set tracefd [open result.tr w]
+set namtrace [open result.nam w]
+$ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
+set topo [new Topography]
+$topo load_flatgrid $opt(x) $opt(y)
+set god_ [create-god $val(nn)]
+$ns_ node-config -adhocRouting $val(adhocRouting) \
+-llType $val(ll) \
+-macType $val(mac) \
+-ifqType $val(ifq) \
+-ifqLen $val(ifqlen) \
+-antType $val(ant) \
+-propType $val(prop) \
+-phyType $val(netif) \
+-channelType $val(chan) \
+-energyModel $val(energy_mod) \
+-initialEnergy $val(energy_init) \
+-txPower $val(tx_power) \
+-rxPower $val(rx_power) \
+-idlePower $val(idle_power) \
+-sleepPower $val(sleep_power) \
+-topoInstance $topo \
+-agentTrace ON \
+-routerTrace ON \
+-macTrace ON \
+-movementTrace ON
+Phy/WirelessPhy set RXThresh_ 5.57189e-11 ;
+Phy/WirelessPhy set CSThresh_ 5.57189e-11 ;
+for {set i 0} {$i < $val(nn)} {incr i} {
+set node_($i) [$ns_ node]
+$node_($i) random-motion 0 ;
+}
+puts "Loading connection pattern..."
+source $val(cp)
+puts "Loading scenario file..."
+source $val(sc)
+for {set i 0} {$i < $val(nn)} {incr i} {
+$ns_ initial_node_pos $node_($i) 20
+}
+for {set i 0} {$i < $val(nn) } {incr i} {
+$ns_ at $val(stop).0 "$node_($i) reset";
+}
+$ns_ at $val(stop).0002 "puts \"NS EXITING...\" ; $ns_ halt"
+puts $tracefd "M 0.0 nn $val(nn) x $opt(x) y $opt(y) rp $val(adhocRouting)"
+puts $tracefd "M 0.0 sc $val(sc) cp $val(cp) seed $val(seed)"
+puts $tracefd "M 0.0 prop $val(prop) ant $val(ant)"
+puts "Starting Simulation..."
+$ns_ run

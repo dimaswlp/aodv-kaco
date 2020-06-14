@@ -1,0 +1,12 @@
+void
+AODV::rt_update(aodv_rt_entry *rt, u_int32_t seqnum, u_int16_t metric,
+nsaddr_t nexthop, double phCount, double expire_time) {
+// MODIFIED //
+rt->pheromoneCount = phCount;
+// MODIFIED //
+rt->rt_seqno = seqnum;
+rt->rt_hops = metric;
+rt->rt_flags = RTF_UP;
+rt->rt_nexthop = nexthop;
+rt->rt_expire = expire_time;
+}

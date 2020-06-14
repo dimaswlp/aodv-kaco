@@ -1,0 +1,28 @@
+void AODV::runCluster(){
+KMeans km;
+srand(time(0));
+int memberId=0;
+int modClustersNodes = NUMBER_OF_NODE % NUMBER_OF_CLUSTER;
+int numberNodes;
+for(int i=0;i<NUMBER_OF_CLUSTER;i++)
+{
+if(i<modClustersNodes)numberNodes = NUMBER_OF_NODE/NUMBER_OF_CLUSTER + 1;
+else numberNodes = NUMBER_OF_NODE/NUMBER_OF_CLUSTER ;
+Cluster cluster;
+for(int j=0;j<numberNodes;j++)
+{
+Member member;
+struct point pt;
+pt.x = this->pt.nodes_position_x[memberId];
+pt.y = this->pt.nodes_position_y[memberId];
+member.setMemberPoint(pt);
+member.setMemberIndex(memberId);
+memberId++;
+cluster.assignMember(member);
+}
+cluster.init();
+km.assignCluster(cluster);
+}
+km.run();
+if(this->ct.nodes_cluster_timestamp < km.getResult().nodes_cluster_timestamp)
+this->ct = km.getResult();
